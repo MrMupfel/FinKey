@@ -1,8 +1,29 @@
-/*
+.finkey-container {
+    position: relative;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.finkey-tooltip {
+    position: absolute;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
 
-If your plugin does not need CSS, delete this file.
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
-*/
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+
+    left: var(--tooltip-x, 0px);
+    top: var(--tooltip-y, 0px);
+}
+
+.finkey-tooltip.is-visible {
+    visibility: visible;
+    opacity: 1;
+}
