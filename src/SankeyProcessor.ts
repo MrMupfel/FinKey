@@ -10,7 +10,8 @@ class FinkeyRenderChild extends MarkdownRenderChild {
         containerEl: HTMLElement,
         private app: App,
         private source: string,
-        private ctx: MarkdownPostProcessorContext
+        private ctx: MarkdownPostProcessorContext,
+        private settings: FinkeySettings
     ) {
         super(containerEl);
     }
@@ -36,7 +37,15 @@ class FinkeyRenderChild extends MarkdownRenderChild {
                     // convert .md string into array of lines
                     const lines = data.split('\n');
                     const blockStart = sectionInfo.lineStart;
-                    const blockEnd = sectionInfo.lineEnd;
+
+                    // dynamically find last line to prevent stale cache
+                    let blockEnd = blockStart;
+                    while (blockEnd < lines.length) {
+                        if (blockEnd > blockStart && lines[blockEnd]?.trim().startsWith('```')) {
+                            break;
+                        }
+                        blockEnd++;
+                    }
 
                     // isolate lines of this specific code block
                     const blockLines = lines.slice(blockStart, blockEnd + 1);
@@ -59,7 +68,7 @@ class FinkeyRenderChild extends MarkdownRenderChild {
                 });
             };
 
-            this.cleanupFn = SankeyRenderer.render(parsedData, this.containerEl, onDragEnd);
+            this.cleanupFn = SankeyRenderer.render(parsedData, this.containerEl, this.settings, onDragEnd);
 
         } catch (error) {
             this.containerEl.createDiv({
@@ -81,7 +90,7 @@ export class SankeyProcessor {
         private settings: FinkeySettings
     ) {}
     public process(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
-        const renderChild = new FinkeyRenderChild(el, this.app, source, ctx);
+        const renderChild = new FinkeyRenderChild(el, this.app, source, ctx, this.settings);
 
         // hand it over to obsidians lifecycle manager
         ctx.addChild(renderChild);

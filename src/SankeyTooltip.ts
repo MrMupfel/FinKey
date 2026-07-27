@@ -17,7 +17,7 @@ export class SankeyToolTip {
 
     public hide = (event: MouseEvent) => {
         this.tooltipEl.classList.remove("is-visible");
-        d3.select(event.currentTarget as SVGElement).attr("stroke-opacity", 0.3);
+        d3.select(event.currentTarget as SVGElement).attr("stroke-opacity", 0.5);
     };
 
     public move = (event: MouseEvent, d: unknown) => {

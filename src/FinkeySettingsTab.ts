@@ -35,7 +35,7 @@ export class FinkeySettingTab extends PluginSettingTab {
         
         new Setting(containerEl)
             .setName('Disable auto relaxation')
-            .setDesc('Nodes and flows will appear in the vertical order they are written in the code block')
+            .setDesc('Nodes will appear in the vertical order they are written. Can help with initial alignment if flows are tangled.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.disableRelaxation)
                 .onChange(async (value) => {

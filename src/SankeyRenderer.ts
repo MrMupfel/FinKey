@@ -1,17 +1,21 @@
 import * as d3 from "d3";
-import { sankey, sankeyLinkHorizontal } from "d3-sankey";
+import { sankey, sankeyLinkHorizontal, SankeyNode } from "d3-sankey";
 import { FinkeyData, FinkeyNode, FinkeyLink } from "./SankeyParser";
 import { SankeyToolTip } from "./SankeyTooltip";
 import { SankeyDrag } from "./SankeyDrag";
+import { FinkeySettings } from "./FinkeySettings";
+import { getThemeColors } from "./ColorThemes";
 
 export class SankeyRenderer {
     public static render(
-        data: FinkeyData, 
+        data: FinkeyData,
         container: HTMLElement,
+        settings: FinkeySettings,
         onDragEnd?: (positions: Record<string, { x: number, y: number }>) => Promise<void> | void
     ): () => void {
         const width = 600;
         const height = 400;
+        const nodeWidth = 10;
 
         const margin = { top: 20, bottom: 20, left: 0, right: 0 };
 
@@ -25,16 +29,47 @@ export class SankeyRenderer {
             .style("max-width", "100%")
             .style("height", "auto");
 
+        const defs = svg.append("defs");
+
+        // Background grid
+        if (settings.snapToGrid) {
+            const defs = svg.append("defs");
+
+            const pattern = defs.append("pattern")
+                .attr("id", "finkey-grid")
+                .attr("width", nodeWidth)
+                .attr("height", nodeWidth)
+                .attr("patternUnits", "userSpaceOnUse");
+
+            pattern.append("path")
+                .attr("d", `M ${nodeWidth} 0 L 0 0 0 ${nodeWidth}`)
+                .attr("fill", "none")
+                .attr("stroke", "var(--background-modifier-border)") // Obsidian native subtle border color
+                .attr("stroke-width", "1")
+                .attr("opacity", 0.5);
+
+            svg.append("rect")
+                .attr("class", "finkey-grid-bg")
+                .attr("width", "100%")
+                .attr("height", height)
+                .attr("fill", "url(#finkey-grid)")
+                .attr("opacity", 0)
+                .style("pointer-events", "none");
+        }
+
         const toolTip = new SankeyToolTip(container);
 
         const sankeyGenerator = sankey<FinkeyNode, FinkeyLink>()
             .nodeId(d => d.id)
-            .nodeWidth(10)
+            .nodeWidth(nodeWidth)
             .nodePadding(20)
             .extent([
-                [margin.left, margin.top], 
+                [margin.left, margin.top],
                 [width - margin.right, height - margin.bottom]]
-            );
+            )
+            .nodeSort(settings.disableRelaxation ? null : undefined);
+
+        // could also add linkSort(null) and iterations(0)
 
         const graph = sankeyGenerator({
             nodes: data.nodes.map(d => ({ ...d })),
@@ -65,15 +100,50 @@ export class SankeyRenderer {
             signDisplay: "exceptZero"
         });
 
+        // color theme setup
+        const themeColors = getThemeColors(settings.colorTheme);
+        const colorScale = d3.scaleOrdinal<string, string>().range(themeColors);
+
+        type LayoutNode = SankeyNode<FinkeyNode, FinkeyLink>;
+
+        const linkGradients = defs.selectAll("linearGradient.link-gradient")
+            .data(graph.links)
+            .enter()
+            .append("linearGradient")
+            .attr("class", "link-gradient")
+            // unique and sanitized ids
+            .attr("id", d => {
+                const source = d.source as LayoutNode;
+                const target = d.target as LayoutNode;
+                return `gradient-${source.id.replace(/\s+/g, '-')}-${target.id.replace(/\s+/g, '-')}`;
+            })
+            .attr("gradientUnits", "userSpaceOnUse")
+            .attr("x1", d => (d.source as LayoutNode).x1!)
+            .attr("x2", d => (d.target as LayoutNode).x0!);
+        
+        // gradient start
+        linkGradients.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", d => colorScale((d.source as LayoutNode).id));
+
+        linkGradients.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", d => colorScale((d.target as LayoutNode).id));
+
         // links
         const linkElements = svg.append("g")
             .attr("fill", "none")
-            .attr("stroke", "var(--text-muted)")
-            .attr("stroke-opacity", 0.3)
+            .attr("stroke-opacity", 0.5)
             .selectAll("path")
             .data(graph.links)
             .enter()
             .append("path")
+            .attr("stroke", d => {
+                const source = d.source as LayoutNode;
+                const target = d.target as LayoutNode;
+                const gradientId = `gradient-${source.id.replace(/\s+/g, '-')}-${target.id.replace(/\s+/g, '-')}`;
+                return `url(#${gradientId})`;
+            })
             .attr("d", sankeyLinkHorizontal())
             .attr("stroke-width", d => Math.max(1, d.width!))
             .on("mouseover", toolTip.show)
@@ -90,8 +160,8 @@ export class SankeyRenderer {
             .attr("y", d => d.y0!)
             .attr("height", d => Math.max(1, d.y1! - d.y0!))
             .attr("width", d => d.x1! - d.x0!)
-            .attr("fill", "var(--interactive-accent)")
-            .attr("opacity", 0.8)
+            .attr("fill", d => colorScale(d.id))
+            .attr("opacity", 0.9)
             .style("cursor", "grab");
         // .attr("rx", 2);
 
@@ -125,8 +195,19 @@ export class SankeyRenderer {
                 const rawBalance = flowIn - flowOut;
                 return balanceFormatter.format(rawBalance);
             });
-        
-        SankeyDrag.setup(nodeElements, linkElements, textElements, sankeyGenerator, graph, width, onDragEnd);
+
+        SankeyDrag.setup(
+            nodeElements,
+            linkElements,
+            textElements, 
+            sankeyGenerator, 
+            graph, 
+            width,
+            settings,
+            nodeWidth,
+            container, 
+            onDragEnd
+        );
 
         return () => {
             // this will eventually hold the .disconnect for a resize observer
