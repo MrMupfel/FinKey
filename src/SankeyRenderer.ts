@@ -16,8 +16,9 @@ export class SankeyRenderer {
         const width = 600;
         const height = 400;
         const nodeWidth = 10;
-
         const margin = { top: 20, bottom: 20, left: 0, right: 0 };
+
+        const instanceId = Math.random().toString(36).substring(2, 9);
 
         container.classList.add("finkey-container");
 
@@ -115,7 +116,7 @@ export class SankeyRenderer {
             .attr("id", d => {
                 const source = d.source as LayoutNode;
                 const target = d.target as LayoutNode;
-                return `gradient-${source.id.replace(/\s+/g, '-')}-${target.id.replace(/\s+/g, '-')}`;
+                return `gradient-${instanceId}-${source.id.replace(/\s+/g, '-')}-${target.id.replace(/\s+/g, '-')}`;
             })
             .attr("gradientUnits", "userSpaceOnUse")
             .attr("x1", d => (d.source as LayoutNode).x1!)
@@ -141,7 +142,7 @@ export class SankeyRenderer {
             .attr("stroke", d => {
                 const source = d.source as LayoutNode;
                 const target = d.target as LayoutNode;
-                const gradientId = `gradient-${source.id.replace(/\s+/g, '-')}-${target.id.replace(/\s+/g, '-')}`;
+                const gradientId = `gradient-${instanceId}-${source.id.replace(/\s+/g, '-')}-${target.id.replace(/\s+/g, '-')}`;
                 return `url(#${gradientId})`;
             })
             .attr("d", sankeyLinkHorizontal())

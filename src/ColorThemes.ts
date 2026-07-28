@@ -11,18 +11,18 @@ export const THEMES: Record<string, FinkeyTheme> = {
         colors: [
             "#ed8796",
             "#8aadf4",
-            "#ee99a0",
-            "#f5a97f",
-            "#eed49f",
             "#a6da95",
-            "#8bd5ca",
-            "#91d7e3",
+            "#ee99a0",
             "#7dc4e4",
-            "#b7bdf8",
             "#f4dbd6",
+            "#8bd5ca",
+            "#b7bdf8",
+            "#f5a97f",
             "#f0c6c6",
+            "#c6a0f6",
+            "#eed49f",
+            "#91d7e3",
             "#f5bde6",
-            "#c6a0f6"
         ]
     }
 };
