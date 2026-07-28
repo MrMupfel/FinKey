@@ -30,4 +30,4 @@ Node C -> Node 2 : 30
 
 
 ---
-Palette by Catppuccin ❤️
+Palette by ❤️ [Catppuccin](https://github.com/catppuccin/catppuccin) licensed under the MIT License
