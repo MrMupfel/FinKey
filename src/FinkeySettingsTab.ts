@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type FinkeyPlugin from "./main";
+import { DEFAULT_SETTINGS } from "./FinkeySettings";
 
 export class FinkeySettingTab extends PluginSettingTab {
     plugin: FinkeyPlugin;
@@ -26,6 +27,74 @@ export class FinkeySettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.colorTheme = value;
                     await this.plugin.saveSettings();
+                })
+            );
+        
+        new Setting(containerEl)
+            .setName('Font color and size')
+            .setHeading();
+        
+        new Setting(containerEl)
+            .setName('Node names')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.nodeNameColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.nodeNameColor = value;
+                    await this.plugin.saveSettings();
+                })
+            )
+            .addText(text => text 
+                .setPlaceholder('Font size (px)')
+                .setValue(String(this.plugin.settings.nodeNameFontSize))
+                .onChange(async (value) => {
+                    const parsedValue = Number(value);
+                    if (!isNaN(parsedValue) && value.trim() !== '') {
+                        this.plugin.settings.nodeNameFontSize = parsedValue;
+                        await this.plugin.saveSettings();
+                    }
+                })
+            )
+            .addExtraButton(btn => btn
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.nodeNameColor = DEFAULT_SETTINGS.nodeNameColor;
+                    this.plugin.settings.nodeNameFontSize = DEFAULT_SETTINGS.nodeNameFontSize;
+                    await this.plugin.saveSettings();
+
+                    this.display();
+                })
+            );
+        
+        new Setting(containerEl)
+            .setName('Balance')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.balanceColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.balanceColor = value;
+                    await this.plugin.saveSettings();
+                })
+            )
+            .addText(text => text
+                .setPlaceholder('Font size (px)')
+                .setValue(String(this.plugin.settings.balanceFontSize))
+                .onChange(async (value) => {
+                    const parsedValue = Number(value);
+                    if (!isNaN(parsedValue) && value.trim() !== '') {
+                        this.plugin.settings.balanceFontSize = parsedValue;
+                        await this.plugin.saveSettings();
+                    }
+                })
+            )
+            .addExtraButton(btn => btn
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.balanceColor = DEFAULT_SETTINGS.balanceColor;
+                    this.plugin.settings.balanceFontSize = DEFAULT_SETTINGS.balanceFontSize;
+                    await this.plugin.saveSettings();
+
+                    this.display();
                 })
             );
 

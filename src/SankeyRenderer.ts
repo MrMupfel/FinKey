@@ -169,8 +169,9 @@ export class SankeyRenderer {
         // node labels
         const textElements = svg.append("g")
             .style("font-family", "var(--font-interface)")
-            .style("font-size", "10px")
-            .style("fill", "var(--text-normal)")
+            // .style("font-size", "15px")
+            .style("font-size", `${settings.nodeNameFontSize}px`)
+            .style("fill", settings.nodeNameColor)
             .selectAll("text")
             .data(graph.nodes)
             .enter()
@@ -189,7 +190,9 @@ export class SankeyRenderer {
         textElements.append("tspan")
             .attr("x", d => d.x0! < width / 2 ? d.x1! + 6 : d.x0! - 6)
             .attr("dy", "1.2em")
-            .style("fill", "var(--text-muted)")
+            // .style("font-size", "10px")
+            .style("font-size", `${settings.balanceFontSize}px`)
+            .style("fill", settings.balanceColor)
             .text(d => {
                 const flowIn = d.targetLinks?.reduce((sum, link) => sum + link.value, 0) || 0;
                 const flowOut = d.sourceLinks?.reduce((sum, link) => sum + link.value, 0) || 0;
